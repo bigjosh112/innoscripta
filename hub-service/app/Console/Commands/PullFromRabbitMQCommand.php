@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Events\ChecklistUpdated;
+use App\Events\EmployeeDataUpdated;
 use App\Services\StreamConnection;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
@@ -88,11 +90,32 @@ class PullFromRabbitMQCommand extends Command
         $this->info("Processing {$eventType} for country {$country}");
 
         $this->invalidateCache($country);
+        $this->broadcastUpdates($country, $eventType, $payload);
     }
 
     private function invalidateCache(string $country): void
     {
-        Cache::delete("checklist:country:{$country}");
-        Cache::delete("employees:{$country}:*");
+        $cache = app('cache');
+        $cache->forget("checklist:country:{$country}");
+
+        if (config('cache.default') === 'redis') {
+            try {
+                $redis = $cache->getStore()->getRedis();
+                $prefix = config('cache.stores.redis.prefix', '');
+                $pattern = $prefix . 'employees:' . $country . ':*';
+                $keys = $redis->keys($pattern);
+                foreach ($keys as $key) {
+                    $redis->del($key);
+                }
+            } catch (\Throwable) {
+                //
+            }
+        }
+    }
+
+    private function broadcastUpdates(string $country, string $eventType, array $payload): void
+    {
+        ChecklistUpdated::dispatch($country, $eventType);
+        EmployeeDataUpdated::dispatch($country, $eventType, $payload['data'] ?? null);
     }
 }   

@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Events\ChecklistUpdated;
+use App\Events\EmployeeDataUpdated;
 use Illuminate\Console\Command;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Exchange\AMQPExchangeType;
@@ -65,6 +67,13 @@ class ConsumeEmployeeEventsCommand extends Command
         $this->info("Processing {$eventType} for country {$country}");
 
         $this->invalidateCache($country);
+        $this->broadcastUpdates($country, $eventType, $payload);
+    }
+
+    private function broadcastUpdates(string $country, string $eventType, array $payload): void
+    {
+        ChecklistUpdated::dispatch($country, $eventType);
+        EmployeeDataUpdated::dispatch($country, $eventType, $payload['data'] ?? null);
     }
 
     private function invalidateCache(string $country): void

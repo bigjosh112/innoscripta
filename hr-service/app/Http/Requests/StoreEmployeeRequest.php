@@ -22,7 +22,7 @@ class StoreEmployeeRequest extends FormRequest
             'name'    => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'country' => 'required|in:USA,Germany',
-            'salary'  => 'required|numeric|min:0.01',
+            'salary'  => 'nullable|numeric|min:0.01',
             'ssn'     => 'nullable|string|max:255',
             'address' => 'nullable|string|max:255',
             'goal'    => 'nullable|string|max:255',
