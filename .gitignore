@@ -1,0 +1,59 @@
+# Environment (never commit secrets)
+.env
+.env.backup
+.env.production
+.env.local
+.env.*.local
+!.env.example
+
+# PHP / Composer
+**/vendor/
+.phpunit.result.cache
+**/.phpunit.cache/
+
+# Node / frontend
+**/node_modules/
+**/public/build/
+**/public/hot/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Laravel
+**/storage/*.key
+**/storage/logs/*.log
+**/storage/pail
+**/storage/framework/cache/data/*
+**/storage/framework/sessions/*
+**/storage/framework/views/*
+**/storage/app/*
+!**/storage/app/.gitignore
+!**/storage/app/public/
+!**/storage/app/private/
+**/bootstrap/cache/*.php
+!**/bootstrap/cache/.gitignore
+**/public/storage
+
+# IDE / editors
+.idea/
+.vscode/
+.fleet/
+.nova/
+.zed/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+*.log
+Homestead.json
+Homestead.yaml
+auth.json
+.phpactor.json
+
+# Docker (optional)
+# .docker/
