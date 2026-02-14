@@ -1,0 +1,68 @@
+services:
+  hr-service:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      COMPOSER_MEMORY_LIMIT: -1
+      APP_NAME: "HR Service"
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_KEY: base64:RAzah8po7kcOwkJSiMIRuw52ihpVNmi09PnZrAF3ALY=
+      APP_URL: http://localhost:8000
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: hr_service
+      DB_USERNAME: hr_user
+      DB_PASSWORD: hr_secret
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_VHOST: /
+      RABBITMQ_EXCHANGE: hr.events
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - hr_vendor:/app/vendor
+    command: ["sh", "-c", "export DB_HOST=postgres DB_PORT=5432 DB_DATABASE=hr_service DB_USERNAME=hr_user DB_PASSWORD=hr_secret && composer install --no-interaction && php artisan config:clear && rm -f bootstrap/cache/config.php && php artisan migrate --force && exec php artisan serve --host=0.0.0.0 --port=8000"]
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: hr_service
+      POSTGRES_USER: hr_user
+      POSTGRES_PASSWORD: hr_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - hr_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hr_user -d hr_service"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_VHOST: /
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  hr_postgres_data:
+  hr_vendor:

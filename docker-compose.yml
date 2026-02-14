@@ -1,0 +1,119 @@
+# HR + Hub services with shared Redis and RabbitMQ
+# Run from repo root: make up  (or: docker compose up -d)
+# HR: http://localhost:8001  |  Hub: http://localhost:9001  |  RabbitMQ UI: http://localhost:15673
+name: innoscripta
+
+services:
+  hr-service:
+    build: ./hr-service
+    container_name: hr-service
+    ports:
+      - "8001:8000"   # host 8001 (avoid conflict with other app on 8000)
+    environment:
+      COMPOSER_MEMORY_LIMIT: -1
+      APP_NAME: "HR Service"
+      APP_KEY: base64:RAzah8po7kcOwkJSiMIRuw52ihpVNmi09PnZrAF3ALY=
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: hr_service
+      DB_USERNAME: hr_user
+      DB_PASSWORD: hr_secret
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_VHOST: /
+      RABBITMQ_EXCHANGE: hr.events
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./hr-service:/app
+      - hr_vendor:/app/vendor
+    command: ["sh", "-c", "export DB_HOST=postgres && composer install --no-interaction && php artisan config:clear && php artisan migrate --force && exec php artisan serve --host=0.0.0.0 --port=8000"]
+
+  hub-service:
+    build: ./hub-service
+    container_name: hub-service
+    ports:
+      - "9001:9000"   # host 9001 (avoid conflict with other app on 9000)
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_KEY: base64:RAzah8po7kcOwkJSiMIRuw52ihpVNmi09PnZrAF3ALY=
+      HR_SERVICE_URL: http://hr-service:8000
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_VHOST: /
+      RABBITMQ_EXCHANGE: hr.events
+      RABBITMQ_QUEUE: employee_events
+      CACHE_STORE: redis
+      REDIS_CLIENT: predis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      hr-service:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./hub-service:/app
+      - hub_vendor:/app/vendor
+    command: ["sh", "-c", "composer install --no-interaction && php artisan config:clear && exec php artisan serve --host=0.0.0.0 --port=9000"]
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: hr_service
+      POSTGRES_USER: hr_user
+      POSTGRES_PASSWORD: hr_secret
+    ports:
+      - "5434:5432"   # host 5434 (avoid conflict with local or other Postgres on 5432/5433)
+    volumes:
+      - hr_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hr_user -d hr_service"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5673:5672"   # host 5673 (avoid conflict with other RabbitMQ on 5672)
+      - "15673:15672" # management UI: http://localhost:15673
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_VHOST: /
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"   # host 6380 (avoid conflict with other Redis on 6379)
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  hr_postgres_data:
+  hr_vendor:
+  hub_vendor:

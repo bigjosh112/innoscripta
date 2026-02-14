@@ -1,0 +1,61 @@
+# Run from hub-service/: docker compose up -d
+# Hub service + RabbitMQ + Redis (no Postgres). Point HR_SERVICE_URL at HR API when it runs.
+services:
+  hub-service:
+    build: .
+    ports:
+      - "9000:9000"
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_KEY: base64:RAzah8po7kcOwkJSiMIRuw52ihpVNmi09PnZrAF3ALY=
+      APP_URL: http://localhost:9000
+      HR_SERVICE_URL: http://host.docker.internal:8000
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: guest
+      RABBITMQ_PASSWORD: guest
+      RABBITMQ_VHOST: /
+      RABBITMQ_EXCHANGE: hr.events
+      RABBITMQ_QUEUE: employee_events
+      CACHE_STORE: redis
+      REDIS_CLIENT: predis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - hub_vendor:/app/vendor
+    command: ["sh", "-c", "composer install --no-interaction && php artisan config:clear && exec php artisan serve --host=0.0.0.0 --port=9000"]
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5673:5672"   # host 5673 to avoid conflict with hr-service on 5672
+      - "15673:15672" # management UI: http://localhost:15673
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_VHOST: /
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"   # host 6380 to avoid conflict with hr-service on 6379
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  hub_vendor:
