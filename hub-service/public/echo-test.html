@@ -3,76 +3,90 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Event Stream · Hub WebSocket Monitor</title>
+  <title>Hub · WebSocket Monitor</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #fafafa;
+      --bg: #f8fafc;
       --surface: #ffffff;
-      --border: #e5e7eb;
-      --text: #1f2937;
-      --text-muted: #6b7280;
-      --accent: #0d9488;
-      --accent-soft: #ccfbf1;
+      --surface-hover: #f8fafc;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --accent: #0369a1;
+      --accent-bg: #e0f2fe;
+      --success: #15803d;
+      --success-bg: #dcfce7;
+      --warn: #a16207;
+      --warn-bg: #fef9c3;
+      --error: #b91c1c;
+      --error-bg: #fee2e2;
       --usa: #1e40af;
-      --usa-soft: #dbeafe;
+      --usa-bg: #dbeafe;
       --de: #b45309;
-      --de-soft: #fef3c7;
-      --success: #059669;
-      --danger: #dc2626;
-      --radius: 10px;
-      --radius-sm: 6px;
-      --shadow: 0 1px 3px rgba(0,0,0,.06);
-      --shadow-md: 0 4px 12px rgba(0,0,0,.06);
+      --de-bg: #fef3c7;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,.04);
+      --shadow-card: 0 4px 6px -1px rgba(0,0,0,.05), 0 2px 4px -2px rgba(0,0,0,.05);
     }
 
     * { box-sizing: border-box; }
     body {
-      font-family: 'DM Sans', system-ui, sans-serif;
+      font-family: 'Inter', system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
       margin: 0;
       min-height: 100vh;
       line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
     }
 
     .app {
-      max-width: 1000px;
+      max-width: 1100px;
       margin: 0 auto;
-      padding: 1.5rem;
+      padding: 2rem 1.5rem;
     }
 
-    header {
-      margin-bottom: 1.5rem;
-      padding-bottom: 1.25rem;
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
       border-bottom: 1px solid var(--border);
     }
 
-    h1 {
-      font-size: 1.5rem;
+    .header-left h1 {
+      font-size: 1.375rem;
       font-weight: 700;
       letter-spacing: -0.02em;
-      margin: 0 0 0.35rem 0;
+      margin: 0 0 0.25rem 0;
+      color: var(--text);
     }
 
-    .subtitle {
-      font-size: 0.875rem;
-      color: var(--text-muted);
+    .header-left p {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
       margin: 0;
     }
 
-    .subtitle code {
+    .header-left code {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.8em;
+      font-size: 0.75em;
       background: var(--surface);
       padding: 0.15em 0.4em;
-      border-radius: var(--radius-sm);
+      border-radius: 4px;
       border: 1px solid var(--border);
+      color: var(--text-secondary);
     }
 
-    #status {
+    .status-badge {
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
@@ -80,21 +94,19 @@
       border-radius: 999px;
       font-size: 0.8125rem;
       font-weight: 500;
-      margin-top: 1rem;
     }
 
-    #status .dot {
-      width: 8px;
-      height: 8px;
+    .status-badge .dot {
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
       background: currentColor;
-      flex-shrink: 0;
     }
 
-    #status.connected { background: var(--accent-soft); color: var(--success); }
-    #status.connected .dot { animation: pulse 2s ease-in-out infinite; }
-    #status.disconnected { background: #fee2e2; color: var(--danger); }
-    #status.loading { background: #fef3c7; color: var(--de); }
+    .status-badge.connected { background: var(--success-bg); color: var(--success); }
+    .status-badge.connected .dot { animation: pulse 2s ease-in-out infinite; }
+    .status-badge.disconnected { background: var(--error-bg); color: var(--error); }
+    .status-badge.loading { background: var(--warn-bg); color: var(--warn); }
 
     @keyframes pulse {
       0%, 100% { opacity: 1; }
@@ -104,10 +116,10 @@
     .panels {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 1.25rem;
+      gap: 1.5rem;
     }
 
-    @media (max-width: 700px) {
+    @media (max-width: 768px) {
       .panels { grid-template-columns: 1fr; }
     }
 
@@ -115,48 +127,274 @@
       background: var(--surface);
       border-radius: var(--radius);
       border: 1px solid var(--border);
-      box-shadow: var(--shadow);
+      box-shadow: var(--shadow-card);
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
 
-    .panel-header {
-      padding: 0.875rem 1.25rem;
+    .panel-title {
+      padding: 1rem 1.25rem;
       font-weight: 600;
       font-size: 0.9375rem;
       letter-spacing: -0.01em;
     }
 
-    .panel.usa .panel-header { background: var(--usa-soft); color: var(--usa); }
-    .panel.germany .panel-header { background: var(--de-soft); color: var(--de); }
+    .panel.usa .panel-title { background: var(--usa-bg); color: var(--usa); }
+    .panel.germany .panel-title { background: var(--de-bg); color: var(--de); }
 
-    .panel-events {
-      max-height: 320px;
-      overflow-y: auto;
-      padding: 0.75rem;
+    .panel-body {
+      padding: 1rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      flex: 1;
+      min-height: 0;
     }
 
-    .panel-events:empty::after {
-      content: 'No events yet. Trigger an employee change in HR, then run make rabbitmq-pull-once.';
+    .stat-card {
+      padding: 1rem 1.25rem;
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      margin-bottom: 1rem;
+    }
+
+    .stat-card .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-card .stat-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .stat-card .stat-value .pct { color: var(--accent); }
+    .stat-card .stat-meta {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+    }
+
+    .stat-card.loading .stat-value { color: var(--text-muted); font-weight: 500; }
+
+    .missing-card {
+      padding: 1rem 1.25rem;
+      background: var(--error-bg);
+      border-radius: var(--radius-sm);
+      border: 1px solid #fecaca;
+      margin-bottom: 1rem;
+    }
+
+    .missing-card.empty { display: none; }
+
+    .missing-card .missing-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--error);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 0.75rem;
+    }
+
+    .missing-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .missing-list li {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #fecaca;
+      font-size: 0.8125rem;
+    }
+
+    .missing-list li:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .missing-list .emp-name {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .missing-list .emp-issues {
+      color: #b91c1c;
+      font-size: 0.75rem;
+      margin-top: 0.2rem;
+    }
+
+    .employees-section {
+      margin-bottom: 1rem;
+    }
+
+    .employees-section .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .employees-section .section-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .tab-row {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .tab-btn {
+      padding: 0.35rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-secondary);
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .tab-btn:hover { background: var(--bg); color: var(--text); }
+    .tab-btn.active { background: var(--accent-bg); color: var(--accent); border-color: var(--accent); }
+
+    .btn-refresh {
+      padding: 0.35rem 0.65rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-secondary);
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .btn-refresh:hover { background: var(--bg); color: var(--accent); }
+
+    .employee-list-wrap {
+      min-height: 120px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+    }
+
+    .employee-list-paginated {
+      margin: 0;
+      padding: 0.5rem 0;
+      list-style: none;
+    }
+
+    .employee-list-paginated li {
+      padding: 0.5rem 1rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8125rem;
+    }
+
+    .employee-list-paginated li:last-child { border-bottom: none; }
+
+    .employee-list-paginated .emp-name { font-weight: 600; color: var(--text); }
+    .employee-list-paginated .emp-issues { color: #b91c1c; font-size: 0.75rem; margin-top: 0.15rem; }
+    .employee-list-paginated .emp-ok { color: var(--success); font-size: 0.75rem; margin-top: 0.15rem; }
+
+    .pagination-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .pagination-row select {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--surface);
+      font-family: inherit;
+    }
+
+    .pagination-row .pagination-btns button {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      margin-left: 0.25rem;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .pagination-row .pagination-btns button:hover:not(:disabled) { background: var(--bg); }
+    .pagination-row .pagination-btns button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .employees-section .empty-list {
+      padding: 1rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.8125rem;
+    }
+
+    .events-section {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .events-section .section-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 0.5rem;
+    }
+
+    .events-list {
+      flex: 1;
+      max-height: 280px;
+      overflow-y: auto;
+      padding-right: 0.25rem;
+    }
+
+    .events-list:empty::after {
+      content: 'No events yet. Update an employee via HR, then run make rabbitmq-pull-once.';
       display: block;
       color: var(--text-muted);
       font-size: 0.8125rem;
-      padding: 1.5rem 0.75rem;
+      padding: 1.5rem 0.5rem;
       line-height: 1.5;
       text-align: center;
     }
 
-    .event {
-      background: var(--bg);
+    .event-card {
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
-      padding: 0.75rem 1rem;
-      margin-bottom: 0.625rem;
+      padding: 0.875rem 1rem;
+      margin-bottom: 0.75rem;
       font-size: 0.8125rem;
     }
 
-    .event:last-child { margin-bottom: 0; }
+    .event-card:last-child { margin-bottom: 0; }
 
-    .event-header {
+    .event-card-head {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -164,43 +402,50 @@
       margin-bottom: 0.5rem;
     }
 
-    .event-type {
+    .event-card-type {
       font-family: 'JetBrains Mono', monospace;
       font-weight: 500;
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       color: var(--accent);
-      background: var(--accent-soft);
-      padding: 0.2em 0.5em;
+      background: var(--accent-bg);
+      padding: 0.25em 0.5em;
       border-radius: 4px;
     }
 
-    .event-time {
+    .event-card-time {
       font-size: 0.7rem;
       color: var(--text-muted);
       font-variant-numeric: tabular-nums;
     }
 
-    .event-payload {
+    .event-card-missing {
+      margin-bottom: 0.5rem;
+      padding: 0.5rem 0.65rem;
+      background: var(--error-bg);
+      border-radius: 4px;
+      font-size: 0.75rem;
+      color: #b91c1c;
+    }
+
+    .event-card-missing strong { color: #991b1b; }
+
+    .event-card-json {
       font-family: 'JetBrains Mono', monospace;
       font-size: 0.7rem;
-      background: var(--surface);
+      background: var(--bg);
       border: 1px solid var(--border);
       border-radius: 4px;
       padding: 0.5rem 0.65rem;
       white-space: pre-wrap;
       word-break: break-word;
-      color: var(--text);
-      max-height: 120px;
+      color: var(--text-secondary);
+      max-height: 100px;
       overflow-y: auto;
     }
 
-    .event-payload .key { color: #7c3aed; }
-    .event-payload .str { color: #059669; }
-    .event-payload .num { color: #0d9488; }
-
-    footer {
-      margin-top: 1.5rem;
-      padding-top: 1rem;
+    .footer {
+      margin-top: 2rem;
+      padding-top: 1.25rem;
       border-top: 1px solid var(--border);
       font-size: 0.75rem;
       color: var(--text-muted);
@@ -209,33 +454,110 @@
 </head>
 <body>
   <div class="app">
-    <header>
-      <h1>Event Stream</h1>
-      <p class="subtitle">Channels: <code>checklist.USA</code>, <code>checklist.Germany</code>, <code>employees.USA</code>, <code>employees.Germany</code>. Events appear here when Hub processes RabbitMQ messages.</p>
-      <div id="status" class="loading"><span class="dot"></span>Loading config…</div>
+    <header class="header">
+      <div class="header-left">
+        <h1>WebSocket Monitor</h1>
+        <p>Channels: <code>checklist.USA</code> · <code>checklist.Germany</code> · <code>employees.USA</code> · <code>employees.Germany</code></p>
+      </div>
+      <div id="status" class="status-badge loading"><span class="dot"></span>Loading…</div>
     </header>
 
     <div class="panels">
       <section class="panel usa" aria-label="USA">
-        <div class="panel-header">USA</div>
-        <div id="events-usa" class="panel-events"></div>
+        <div class="panel-title">USA</div>
+        <div class="panel-body">
+          <div id="checklist-usa" class="stat-card loading">
+            <div class="stat-label">Checklist completion</div>
+            <div class="stat-value">—</div>
+            <div class="stat-meta"></div>
+          </div>
+          <div id="employees-usa" class="employees-section">
+            <div class="section-head">
+              <span class="section-title">Employees by validation</span>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <div class="tab-row">
+                  <button type="button" class="tab-btn active" data-country="USA" data-tab="validated">Validated</button>
+                  <button type="button" class="tab-btn" data-country="USA" data-tab="invalidated">Invalidated</button>
+                </div>
+                <button type="button" class="btn-refresh" data-country="USA">Refresh</button>
+              </div>
+            </div>
+            <div class="employee-list-wrap">
+              <ul id="list-usa" class="employee-list-paginated"></ul>
+              <div id="empty-usa" class="empty-list" style="display:none;">No data. Click Refresh.</div>
+            </div>
+            <div id="pagination-usa" class="pagination-row" style="display:none;">
+              <span><select data-country="USA"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option></select> per page</span>
+              <span class="pagination-btns">
+                <button type="button" data-country="USA" data-action="prev">Prev</button>
+                <span class="page-info"></span>
+                <button type="button" data-country="USA" data-action="next">Next</button>
+              </span>
+            </div>
+          </div>
+          <div class="events-section">
+            <div class="section-label">Recent events</div>
+            <div id="events-usa" class="events-list"></div>
+          </div>
+        </div>
       </section>
       <section class="panel germany" aria-label="Germany">
-        <div class="panel-header">Germany</div>
-        <div id="events-germany" class="panel-events"></div>
+        <div class="panel-title">Germany</div>
+        <div class="panel-body">
+          <div id="checklist-germany" class="stat-card loading">
+            <div class="stat-label">Checklist completion</div>
+            <div class="stat-value">—</div>
+            <div class="stat-meta"></div>
+          </div>
+          <div id="employees-germany" class="employees-section">
+            <div class="section-head">
+              <span class="section-title">Employees by validation</span>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <div class="tab-row">
+                  <button type="button" class="tab-btn active" data-country="Germany" data-tab="validated">Validated</button>
+                  <button type="button" class="tab-btn" data-country="Germany" data-tab="invalidated">Invalidated</button>
+                </div>
+                <button type="button" class="btn-refresh" data-country="Germany">Refresh</button>
+              </div>
+            </div>
+            <div class="employee-list-wrap">
+              <ul id="list-germany" class="employee-list-paginated"></ul>
+              <div id="empty-germany" class="empty-list" style="display:none;">No data. Click Refresh.</div>
+            </div>
+            <div id="pagination-germany" class="pagination-row" style="display:none;">
+              <span><select data-country="Germany"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option></select> per page</span>
+              <span class="pagination-btns">
+                <button type="button" data-country="Germany" data-action="prev">Prev</button>
+                <span class="page-info"></span>
+                <button type="button" data-country="Germany" data-action="next">Next</button>
+              </span>
+            </div>
+          </div>
+          <div class="events-section">
+            <div class="section-label">Recent events</div>
+            <div id="events-germany" class="events-list"></div>
+          </div>
+        </div>
       </section>
     </div>
 
-    <footer>Hub WebSocket monitor · Pusher-backed real-time updates</footer>
+    <footer class="footer">Hub WebSocket monitor · Pusher-backed real-time updates</footer>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/pusher-js@8.4.0/dist/web/pusher.min.js"></script>
   <script>
     (function () {
-      const statusEl = document.getElementById('status');
-      const eventsByCountry = {
-        USA: document.getElementById('events-usa'),
-        Germany: document.getElementById('events-germany')
+      var statusEl = document.getElementById('status');
+      var eventsByCountry = { USA: document.getElementById('events-usa'), Germany: document.getElementById('events-germany') };
+      var checklistByCountry = { USA: document.getElementById('checklist-usa'), Germany: document.getElementById('checklist-germany') };
+      var listByCountry = { USA: document.getElementById('list-usa'), Germany: document.getElementById('list-germany') };
+      var emptyByCountry = { USA: document.getElementById('empty-usa'), Germany: document.getElementById('empty-germany') };
+      var paginationByCountry = { USA: document.getElementById('pagination-usa'), Germany: document.getElementById('pagination-germany') };
+      var apiBase = window.location.origin;
+
+      var employeeData = {
+        USA: { validated: [], invalidated: [], tab: 'validated', page: 1, pageSize: 10 },
+        Germany: { validated: [], invalidated: [], tab: 'validated', page: 1, pageSize: 10 }
       };
 
       function countryFromChannel(channelName) {
@@ -245,79 +567,220 @@
       }
 
       function escapeHtml(s) {
-        const el = document.createElement('div');
-        el.textContent = s;
+        if (s == null) return '';
+        var el = document.createElement('div');
+        el.textContent = String(s);
         return el.innerHTML;
       }
 
+      function setEmployeeData(country, validated, invalidated) {
+        var data = employeeData[country];
+        if (!data) return;
+        data.validated = validated;
+        data.invalidated = invalidated;
+        data.page = 1;
+        renderEmployeeList(country);
+      }
+
+      function renderEmployeeList(country) {
+        var data = employeeData[country];
+        var listEl = listByCountry[country];
+        var emptyEl = emptyByCountry[country];
+        var paginationEl = paginationByCountry[country];
+        if (!data || !listEl) return;
+
+        var list = data.tab === 'validated' ? data.validated : data.invalidated;
+        var pageSize = data.pageSize;
+        var totalItems = list.length;
+        var totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+        var page = Math.min(data.page, totalPages);
+        data.page = page;
+
+        var start = (page - 1) * pageSize;
+        var slice = list.slice(start, start + pageSize);
+
+        listEl.innerHTML = '';
+        if (slice.length === 0) {
+          emptyEl.style.display = 'block';
+          emptyEl.textContent = data.tab === 'validated' ? 'No validated employees.' : 'No invalidated employees.';
+          paginationEl.style.display = 'none';
+        } else {
+          emptyEl.style.display = 'none';
+          for (var i = 0; i < slice.length; i++) {
+            var emp = slice[i];
+            var li = document.createElement('li');
+            if (data.tab === 'invalidated' && emp.msgs) {
+              li.innerHTML = '<span class="emp-name">' + escapeHtml(emp.name) + '</span><div class="emp-issues">' + escapeHtml(emp.msgs) + '</div>';
+            } else {
+              li.innerHTML = '<span class="emp-name">' + escapeHtml(emp.name) + '</span><div class="emp-ok">Complete</div>';
+            }
+            listEl.appendChild(li);
+          }
+          paginationEl.style.display = 'flex';
+          var pageInfo = paginationEl.querySelector('.page-info');
+          pageInfo.textContent = 'Page ' + page + ' of ' + totalPages;
+          paginationEl.querySelector('button[data-action="prev"]').disabled = page <= 1;
+          paginationEl.querySelector('button[data-action="next"]').disabled = page >= totalPages;
+          var sel = paginationEl.querySelector('select');
+          if (sel) sel.value = String(pageSize);
+        }
+      }
+
+      function fetchChecklist(country) {
+        var el = checklistByCountry[country];
+        if (!el) return;
+        el.classList.add('loading');
+        fetch(apiBase + '/api/checklists?country=' + encodeURIComponent(country))
+          .then(function (r) { return r.json(); })
+          .then(function (json) {
+            el.classList.remove('loading');
+            var overall = json.overall || {};
+            var total = overall.total || 0;
+            var pct = overall.percentage || 0;
+            el.querySelector('.stat-value').innerHTML =
+              total + ' employee' + (total === 1 ? '' : 's') + ', <span class="pct">' + pct + '%</span> complete';
+            el.querySelector('.stat-meta').textContent =
+              'Updated ' + new Date().toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+            var employees = json.employees || [];
+            var validated = [];
+            var invalidated = [];
+            for (var i = 0; i < employees.length; i++) {
+              var emp = employees[i];
+              var name = emp.name || ('Employee #' + (emp.id || '?'));
+              if (emp.complete) {
+                validated.push({ name: name });
+              } else {
+                var msgs = [];
+                if (emp.checklist && emp.checklist.length) {
+                  for (var j = 0; j < emp.checklist.length; j++) {
+                    if (!emp.checklist[j].complete) msgs.push(emp.checklist[j].message);
+                  }
+                }
+                invalidated.push({ name: name, msgs: msgs.join('; ') });
+              }
+            }
+            setEmployeeData(country, validated, invalidated);
+          })
+          .catch(function () {
+            el.classList.remove('loading');
+            el.querySelector('.stat-value').textContent = 'Failed to load';
+            el.querySelector('.stat-meta').textContent = '';
+            setEmployeeData(country, [], []);
+          });
+      }
+
+      document.addEventListener('click', function (e) {
+        var country = e.target.getAttribute('data-country');
+        if (!country) return;
+        if (e.target.classList.contains('tab-btn')) {
+          var tab = e.target.getAttribute('data-tab');
+          if (!tab) return;
+          employeeData[country].tab = tab;
+          employeeData[country].page = 1;
+          var section = document.getElementById('employees-' + (country === 'USA' ? 'usa' : 'germany'));
+          if (section) {
+            section.querySelectorAll('.tab-btn').forEach(function (btn) {
+              btn.classList.toggle('active', btn.getAttribute('data-tab') === tab);
+            });
+          }
+          renderEmployeeList(country);
+        } else if (e.target.classList.contains('btn-refresh')) {
+          fetchChecklist(country);
+        } else if (e.target.getAttribute('data-action') === 'prev') {
+          var d = employeeData[country];
+          if (d && d.page > 1) { d.page--; renderEmployeeList(country); }
+        } else if (e.target.getAttribute('data-action') === 'next') {
+          var d = employeeData[country];
+          var list = d.tab === 'validated' ? d.validated : d.invalidated;
+          var maxPage = Math.ceil(list.length / d.pageSize) || 1;
+          if (d && d.page < maxPage) { d.page++; renderEmployeeList(country); }
+        }
+      });
+
+      document.addEventListener('change', function (e) {
+        if (e.target.tagName !== 'SELECT' || !e.target.getAttribute('data-country')) return;
+        var country = e.target.getAttribute('data-country');
+        var pageSize = parseInt(e.target.value, 10) || 10;
+        employeeData[country].pageSize = pageSize;
+        employeeData[country].page = 1;
+        renderEmployeeList(country);
+      });
+
       function addEvent(channelName, eventName, data) {
-        const country = countryFromChannel(channelName);
-        const container = country ? eventsByCountry[country] : null;
+        var country = countryFromChannel(channelName);
+        var container = country ? eventsByCountry[country] : null;
         if (!container) return;
 
-        const div = document.createElement('div');
-        div.className = 'event';
-        const time = new Date().toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        const rawJson = JSON.stringify(data, null, 2);
+        if (country && (eventName === 'ChecklistUpdated' || eventName === 'EmployeeDataUpdated')) {
+          fetchChecklist(country);
+        }
+
+        var div = document.createElement('div');
+        div.className = 'event-card';
+        var time = new Date().toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        var rawJson = JSON.stringify(data, null, 2);
+
+        var missingHtml = '';
+        if (eventName === 'ChecklistUpdated' && data.missing_fields && data.missing_fields.length) {
+          var list = data.missing_fields.map(function (m) { return escapeHtml(m); }).join(' · ');
+          missingHtml = '<div class="event-card-missing"><strong>Missing or incomplete:</strong> ' + list + '</div>';
+        }
 
         div.innerHTML =
-          '<div class="event-header">' +
-            '<span class="event-type">' + escapeHtml(eventName) + '</span>' +
-            '<span class="event-time">' + time + '</span>' +
+          '<div class="event-card-head">' +
+            '<span class="event-card-type">' + escapeHtml(eventName) + '</span>' +
+            '<span class="event-card-time">' + time + '</span>' +
           '</div>' +
-          '<pre class="event-payload">' + escapeHtml(rawJson) + '</pre>';
+          missingHtml +
+          '<pre class="event-card-json">' + escapeHtml(rawJson) + '</pre>';
         container.insertBefore(div, container.firstChild);
 
         console.log('WebSocket event [' + (country || channelName) + ']:', eventName, data);
       }
 
       function setStatus(connected) {
-        const dot = statusEl.querySelector('.dot');
+        var dot = statusEl.querySelector('.dot');
         statusEl.textContent = connected ? 'Live' : 'Disconnected';
         if (dot) statusEl.insertBefore(dot, statusEl.firstChild);
-        statusEl.className = connected ? 'connected' : 'disconnected';
+        statusEl.className = 'status-badge ' + (connected ? 'connected' : 'disconnected');
       }
 
-      const configUrl = (window.location.pathname.indexOf('echo-test') !== -1)
+      var configUrl = (window.location.pathname.indexOf('echo-test') !== -1)
         ? (window.location.origin + '/api/broadcasting/config')
         : (window.HUB_URL || 'http://localhost:9001') + '/api/broadcasting/config';
 
       fetch(configUrl)
         .then(function (r) { return r.json(); })
         .then(function (config) {
+          fetchChecklist('USA');
+          fetchChecklist('Germany');
           if (!config.key) {
-            statusEl.className = 'disconnected';
+            statusEl.className = 'status-badge disconnected';
             statusEl.innerHTML =
-              '<span class="dot"></span><strong>Pusher not configured</strong><br><br>' +
-              '1. Create a free app at <a href="https://dashboard.pusher.com/apps/new" target="_blank" rel="noopener">pusher.com</a><br>' +
-              '2. In <code>hub-service/.env</code> set <code>BROADCAST_CONNECTION=pusher</code>, <code>PUSHER_APP_*</code> keys and <code>PUSHER_APP_CLUSTER</code><br>' +
-              '3. Restart Hub and reload.';
+              '<span class="dot"></span>Pusher not configured. Set PUSHER_APP_* in hub-service/.env and restart.';
             return;
           }
-
-          const options = { cluster: config.cluster || 'mt1', forceTLS: config.forceTLS !== false };
+          var options = { cluster: config.cluster || 'mt1', forceTLS: config.forceTLS !== false };
           if (config.wsHost) {
             options.wsHost = config.wsHost;
             options.wsPort = config.wsPort || 443;
             options.wssPort = config.wssPort || 443;
           }
-
-          const pusher = new Pusher(config.key, options);
+          var pusher = new Pusher(config.key, options);
           pusher.connection.bind('connected', function () { setStatus(true); });
           pusher.connection.bind('disconnected', function () { setStatus(false); });
           pusher.connection.bind('error', function () { setStatus(false); });
-
           ['checklist.USA', 'checklist.Germany', 'employees.USA', 'employees.Germany'].forEach(function (channelName) {
-            const ch = pusher.subscribe(channelName);
+            var ch = pusher.subscribe(channelName);
             ch.bind('ChecklistUpdated', function (data) { addEvent(channelName, 'ChecklistUpdated', data); });
             ch.bind('EmployeeDataUpdated', function (data) { addEvent(channelName, 'EmployeeDataUpdated', data); });
           });
-
           statusEl.innerHTML = '<span class="dot"></span>Connecting…';
         })
         .catch(function (err) {
           statusEl.innerHTML = '<span class="dot"></span>Config failed: ' + escapeHtml(err.message);
-          statusEl.className = 'disconnected';
+          statusEl.className = 'status-badge disconnected';
         });
     })();
   </script>

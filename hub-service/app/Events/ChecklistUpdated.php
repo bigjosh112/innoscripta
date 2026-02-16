@@ -12,9 +12,13 @@ class ChecklistUpdated implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
+    /**
+     * @param  array<int, string>  $missingFields  Messages for incomplete fields (e.g. "Salary is required or invalid")
+     */
     public function __construct(
         public readonly string $country,
-        public readonly string $eventType
+        public readonly string $eventType,
+        public readonly array $missingFields = []
     ) {}
 
     public function broadcastOn(): array
@@ -35,6 +39,7 @@ class ChecklistUpdated implements ShouldBroadcastNow
             'country' => $this->country,
             'event_type' => $this->eventType,
             'message' => "Checklist data invalidated for {$this->country}. Refresh or refetch checklist.",
+            'missing_fields' => $this->missingFields,
         ];
     }
 }
