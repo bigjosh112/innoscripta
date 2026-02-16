@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ShowSchemaRequest;
 use App\Services\Schema\SchemaConfig;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class SchemaController extends Controller
 {
@@ -12,15 +12,10 @@ class SchemaController extends Controller
         private readonly SchemaConfig $schemaConfig
     ) {}
 
-    public function show(Request $request, string $step_id): JsonResponse
+    public function show(ShowSchemaRequest $request, string $step_id): JsonResponse
     {
-        $country = $request->query('country');
-        if (empty($country)) {
-            return response()->json(['error' => 'country query parameter is required'], 422);
-        }
-
+        $country = $request->validated('country');
         $widgets = $this->schemaConfig->getSchema($step_id, $country);
-
         return response()->json(['data' => ['step_id' => $step_id, 'widgets' => $widgets]]);
     }
 }

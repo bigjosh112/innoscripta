@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\IndexStepsRequest;
 use App\Services\Steps\StepsConfig;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class StepsController extends Controller
 {
@@ -12,15 +12,10 @@ class StepsController extends Controller
         private readonly StepsConfig $stepsConfig
     ) {}
 
-    public function index(Request $request): JsonResponse
+    public function index(IndexStepsRequest $request): JsonResponse
     {
-        $country = $request->query('country');
-        if (empty($country)) {
-            return response()->json(['error' => 'country query parameter is required'], 422);
-        }
-
+        $country = $request->validated('country');
         $steps = $this->stepsConfig->getSteps($country);
-
         return response()->json(['data' => $steps]);
     }
 }

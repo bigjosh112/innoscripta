@@ -2,9 +2,9 @@
 
 namespace App\Console\Commands;
 
-use App\Events\ChecklistUpdated;
-use App\Events\EmployeeDataUpdated;
+use App\Services\EmployeeEventProcessor;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Exchange\AMQPExchangeType;
 
@@ -13,6 +13,12 @@ class ConsumeEmployeeEventsCommand extends Command
     protected $signature = 'rabbitmq:consume-employee-events';
 
     protected $description = 'Consume employee events from RabbitMQ and invalidate cache';
+
+    public function __construct(
+        private readonly EmployeeEventProcessor $eventProcessor
+    ) {
+        parent::__construct();
+    }
 
     public function handle(): int
     {
@@ -35,10 +41,26 @@ class ConsumeEmployeeEventsCommand extends Command
 
         $this->info("Listening on queue {$queue} (exchange: {$exchange}, routing: employee.#)...");
 
-        $callback = function ($msg) {
+        $processor = $this->eventProcessor;
+        $callback = function ($msg) use ($processor) {
             $body = json_decode($msg->body, true);
-            $this->processEvent($body);
-            $msg->ack();
+            $eventType = $body['event_type'] ?? null;
+            $country = $body['country'] ?? null;
+            if (!$eventType || !$country) {
+                $this->warn('Invalid event payload: missing event_type or country');
+                $msg->ack();
+                return;
+            }
+            $this->info("Processing {$eventType} for country {$country}");
+            try {
+                $processor->process($body);
+                $this->line("Invalidated cache for country: {$country}");
+                $msg->ack();
+            } catch (\Throwable $e) {
+                Log::error('Event processing failed', ['payload' => $body, 'exception' => $e->getMessage()]);
+                $this->error('Processing failed: ' . $e->getMessage());
+                $msg->nack(true);
+            }
         };
 
         $channel->basic_qos(null, 1, null);
@@ -52,49 +74,5 @@ class ConsumeEmployeeEventsCommand extends Command
         $connection->close();
 
         return 0;
-    }
-
-    private function processEvent(array $payload): void
-    {
-        $eventType = $payload['event_type'] ?? null;
-        $country = $payload['country'] ?? null;
-
-        if (!$eventType || !$country) {
-            $this->warn('Invalid event payload: missing event_type or country');
-            return;
-        }
-
-        $this->info("Processing {$eventType} for country {$country}");
-
-        $this->invalidateCache($country);
-        $this->broadcastUpdates($country, $eventType, $payload);
-    }
-
-    private function broadcastUpdates(string $country, string $eventType, array $payload): void
-    {
-        ChecklistUpdated::dispatch($country, $eventType);
-        EmployeeDataUpdated::dispatch($country, $eventType, $payload['data'] ?? null);
-    }
-
-    private function invalidateCache(string $country): void
-    {
-        $cache = app('cache');
-        $cache->forget("checklist:country:{$country}");
-
-        if (config('cache.default') === 'redis') {
-            try {
-                $redis = $cache->getStore()->getRedis();
-                $prefix = config('cache.stores.redis.prefix', '');
-                $pattern = $prefix . 'employees:' . $country . ':*';
-                $keys = $redis->keys($pattern);
-                foreach ($keys as $key) {
-                    $redis->del($key);
-                }
-            } catch (\Throwable) {
-                // Cache will expire
-            }
-        }
-
-        $this->line("Invalidated cache for country: {$country}");
     }
 }

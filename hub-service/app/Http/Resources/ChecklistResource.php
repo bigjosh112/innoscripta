@@ -8,7 +8,7 @@ use Illuminate\Support\Collection;
 
 class ChecklistResource extends JsonResource
 {
-    public static ?string $wrap = null;
+    public static $wrap = null;
 
     /**
      * @return array<string, mixed>

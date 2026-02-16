@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\IndexChecklistRequest;
+use App\Http\Resources\ChecklistResource;
 use App\Services\Checklist\ChecklistValidator;
 use App\Services\HrServiceClient;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class ChecklistController extends Controller
 {
@@ -15,17 +17,19 @@ class ChecklistController extends Controller
         private readonly ChecklistValidator $validator
     ) {}
 
-    public function index(Request $request): JsonResponse
+    public function index(IndexChecklistRequest $request): JsonResponse
     {
-        $country = $request->query('country');
-        if (empty($country)) {
-            return response()->json(['error' => 'country query parameter is required'], 422);
-        }
+        $country = $request->validated('country');
 
         $cacheKey = "checklist:country:{$country}";
-        $result = Cache::remember($cacheKey, 60, fn () => $this->computeChecklist($country));
+        try {
+            $result = Cache::remember($cacheKey, 60, fn () => $this->computeChecklist($country));
+        } catch (\Throwable $e) {
+            Log::error('Checklist computation failed', ['country' => $country, 'exception' => $e->getMessage()]);
+            return response()->json(['error' => 'Failed to load checklist'], 503);
+        }
 
-        return response()->json($result);
+        return (new ChecklistResource($result))->response();
     }
 
     private function computeChecklist(string $country): array

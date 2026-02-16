@@ -7,6 +7,7 @@ use App\Http\Requests\ShowEmployeeRequest;
 use App\Services\HrServiceClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class EmployeeController extends Controller
 {
@@ -22,9 +23,14 @@ class EmployeeController extends Controller
         $perPage = max(1, min(100, $perPage));
 
         $cacheKey = "employees:{$country}:{$page}:{$perPage}";
-        $result = Cache::remember($cacheKey, 300, function () use ($country, $page, $perPage) {
-            return $this->fetchAndTransform($country, $page, $perPage);
-        });
+        try {
+            $result = Cache::remember($cacheKey, 60, function () use ($country, $page, $perPage) {
+                return $this->fetchAndTransform($country, $page, $perPage);
+            });
+        } catch (\Throwable $e) {
+            Log::error('Employee list fetch failed', ['country' => $country, 'exception' => $e->getMessage()]);
+            return response()->json(['error' => 'Failed to load employees'], 503);
+        }
 
         return response()->json($result);
     }
@@ -34,14 +40,19 @@ class EmployeeController extends Controller
         $country = $request->validated('country');
 
         $cacheKey = "employees:{$country}:{$id}";
-        $result = Cache::remember($cacheKey, 60, function () use ($id, $country) {
-            $emp = $this->hrClient->getEmployee($id, $country);
-            $columns = $this->getColumnsForCountry($country);
-            return [
-                'data'    => $this->transformEmployee($emp, $country),
-                'columns' => $columns,
-            ];
-        });
+        try {
+            $result = Cache::remember($cacheKey, 60, function () use ($id, $country) {
+                $emp = $this->hrClient->getEmployee($id, $country);
+                $columns = $this->getColumnsForCountry($country);
+                return [
+                    'data'    => $this->transformEmployee($emp, $country),
+                    'columns' => $columns,
+                ];
+            });
+        } catch (\Throwable $e) {
+            Log::error('Employee fetch failed', ['id' => $id, 'country' => $country, 'exception' => $e->getMessage()]);
+            return response()->json(['error' => 'Failed to load employee'], 503);
+        }
 
         return response()->json($result);
     }
