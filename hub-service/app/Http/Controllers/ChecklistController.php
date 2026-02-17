@@ -38,6 +38,8 @@ class ChecklistController extends Controller
 
         $employeeChecklists = [];
         $completeCount = 0;
+        $salarySum = 0.0;
+        $salaryCount = 0;
 
         foreach ($employees as $emp) {
             $validation = $this->validator->validateEmployee($emp, $country);
@@ -51,13 +53,18 @@ class ChecklistController extends Controller
             if ($validation['complete']) {
                 $completeCount++;
             }
+            if (isset($emp['salary']) && (float) $emp['salary'] > 0) {
+                $salarySum += (float) $emp['salary'];
+                $salaryCount++;
+            }
         }
 
         $total = count($employeeChecklists);
         $overall = [
-            'total'      => $total,
-            'complete'   => $completeCount,
-            'percentage' => $total > 0 ? (int) round(($completeCount / $total) * 100) : 0,
+            'total'          => $total,
+            'complete'       => $completeCount,
+            'percentage'     => $total > 0 ? (int) round(($completeCount / $total) * 100) : 0,
+            'average_salary' => $salaryCount > 0 ? (int) round($salarySum / $salaryCount) : null,
         ];
 
         return [

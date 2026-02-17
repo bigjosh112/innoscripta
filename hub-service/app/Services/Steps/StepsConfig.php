@@ -13,17 +13,17 @@ class StepsConfig
 
         return match ($country) {
             'USA' => [
-                ['id' => 'dashboard', 'label' => 'Dashboard', 'path' => '/dashboard', 'order' => 1, 'icon' => 'dashboard'],
-                ['id' => 'employees', 'label' => 'Employees', 'path' => '/employees', 'order' => 2, 'icon' => 'users'],
+                ['id' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'home', 'order' => 1, 'path' => '/dashboard'],
+                ['id' => 'employees', 'label' => 'Employees', 'icon' => 'users', 'order' => 2, 'path' => '/employees'],
             ],
             'Germany' => [
-                ['id' => 'dashboard', 'label' => 'Dashboard', 'path' => '/dashboard', 'order' => 1, 'icon' => 'dashboard'],
-                ['id' => 'employees', 'label' => 'Employees', 'path' => '/employees', 'order' => 2, 'icon' => 'users'],
-                ['id' => 'documentation', 'label' => 'Documentation', 'path' => '/documentation', 'order' => 3, 'icon' => 'document'],
+                ['id' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'home', 'order' => 1, 'path' => '/dashboard'],
+                ['id' => 'employees', 'label' => 'Employees', 'icon' => 'users', 'order' => 2, 'path' => '/employees'],
+                ['id' => 'documentation', 'label' => 'Documentation', 'icon' => 'book', 'order' => 3, 'path' => '/documentation'],
             ],
             default => [
-                ['id' => 'dashboard', 'label' => 'Dashboard', 'path' => '/dashboard', 'order' => 1],
-                ['id' => 'employees', 'label' => 'Employees', 'path' => '/employees', 'order' => 2],
+                ['id' => 'dashboard', 'label' => 'Dashboard', 'icon' => 'home', 'order' => 1, 'path' => '/dashboard'],
+                ['id' => 'employees', 'label' => 'Employees', 'icon' => 'users', 'order' => 2, 'path' => '/employees'],
             ],
         };
     }

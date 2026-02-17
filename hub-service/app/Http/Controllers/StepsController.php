@@ -16,6 +16,6 @@ class StepsController extends Controller
     {
         $country = $request->validated('country');
         $steps = $this->stepsConfig->getSteps($country);
-        return response()->json(['data' => $steps]);
+        return response()->json(['steps' => $steps]);
     }
 }

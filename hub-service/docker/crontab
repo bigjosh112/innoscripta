@@ -1,0 +1,2 @@
+# RabbitMQ pull moved to entrypoint loop so it inherits full Docker env (Pusher broadcast works).
+# This file kept for reference or other cron jobs.

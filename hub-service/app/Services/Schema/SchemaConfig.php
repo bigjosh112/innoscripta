@@ -20,6 +20,8 @@ class SchemaConfig
                 ],
                 'Germany' => [
                     ['id' => 'employee_count', 'type' => 'stat', 'title' => 'Employee Count', 'data_source' => '/api/checklists?country=Germany', 'channel' => 'checklist.Germany'],
+                    ['id' => 'average_salary', 'type' => 'stat', 'title' => 'Average Salary', 'data_source' => '/api/checklists?country=Germany', 'channel' => 'checklist.Germany'],
+                    ['id' => 'completion_rate', 'type' => 'stat', 'title' => 'Completion Rate', 'data_source' => '/api/checklists?country=Germany', 'channel' => 'checklist.Germany'],
                     ['id' => 'goal_tracking', 'type' => 'list', 'title' => 'Goal Tracking', 'data_source' => '/api/employees?country=Germany', 'channel' => 'employees.Germany'],
                 ],
                 default => [

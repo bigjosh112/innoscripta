@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Server-Driven UI · Steps & Schema</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #94a3b8;
+      --accent: #0369a1;
+      --accent-bg: #e0f2fe;
+    }
+    * { box-sizing: border-box; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 2rem 1.5rem; }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { font-size: 1.5rem; margin: 0 0 0.5rem 0; }
+    .subtitle { font-size: 0.875rem; color: var(--text-muted); margin: 0 0 1.5rem 0; }
+    .controls { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .controls label { font-size: 0.875rem; font-weight: 500; }
+    .controls select {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.875rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      font-family: inherit;
+    }
+    .section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem; }
+    .section h2 { font-size: 0.8125rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; margin: 0 0 0.75rem 0; }
+    .step-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
+    .step-list li { margin: 0; }
+    .step-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.875rem;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      color: var(--text);
+    }
+    .step-btn:hover { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+    .step-btn.active { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+    .step-btn .icon { font-size: 1rem; opacity: 0.8; }
+    .widget-list { margin: 0; padding: 0; list-style: none; }
+    .widget-list li {
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+    }
+    .widget-list li:last-child { margin-bottom: 0; }
+    .widget-title { font-weight: 600; margin-bottom: 0.35rem; }
+    .widget-meta { font-size: 0.75rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+    .widget-meta a { color: var(--accent); }
+    .loading { color: var(--text-muted); }
+    .error { color: #b91c1c; font-size: 0.875rem; }
+    .back { font-size: 0.875rem; margin-bottom: 1rem; }
+    .back a { color: var(--accent); text-decoration: none; }
+    .back a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <p class="back"><a href="/echo-test.html">← WebSocket monitor</a></p>
+    <h1>Server-Driven UI</h1>
+    <p class="subtitle">Steps (navigation) and Schema (widget config) from the API. Change country to see USA vs Germany.</p>
+
+    <div class="controls">
+      <label for="country">Country</label>
+      <select id="country">
+        <option value="USA">USA</option>
+        <option value="Germany">Germany</option>
+      </select>
+    </div>
+
+    <div class="section">
+      <h2>API 1: Steps (GET /api/steps)</h2>
+      <p id="steps-desc" class="loading">Loading steps…</p>
+      <ul id="steps" class="step-list"></ul>
+    </div>
+
+    <div class="section">
+      <h2>API 3: Schema for step (GET /api/schema/<span id="schema-step-label">dashboard</span>)</h2>
+      <p id="schema-desc" class="loading">Select a step above or loading…</p>
+      <ul id="widgets" class="widget-list"></ul>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var apiBase = window.location.origin;
+      var countrySelect = document.getElementById('country');
+      var stepsContainer = document.getElementById('steps');
+      var stepsDesc = document.getElementById('steps-desc');
+      var schemaStepLabel = document.getElementById('schema-step-label');
+      var schemaDesc = document.getElementById('schema-desc');
+      var widgetsContainer = document.getElementById('widgets');
+      var currentStepId = 'dashboard';
+
+      function escapeHtml(s) {
+        if (s == null) return '';
+        var el = document.createElement('div');
+        el.textContent = String(s);
+        return el.innerHTML;
+      }
+
+      function getCountry() {
+        return countrySelect ? countrySelect.value : 'USA';
+      }
+
+      function loadSteps() {
+        var country = getCountry();
+        stepsDesc.textContent = 'Loading…';
+        stepsContainer.innerHTML = '';
+        fetch(apiBase + '/api/steps?country=' + encodeURIComponent(country))
+          .then(function (r) { return r.json(); })
+          .then(function (json) {
+            var data = json.steps || json.data || [];
+            if (data.length === 0) {
+              stepsDesc.textContent = 'No steps returned.';
+              return;
+            }
+            stepsDesc.textContent = 'Navigation steps for ' + country + ' (from backend):';
+            data.forEach(function (step) {
+              var li = document.createElement('li');
+              var btn = document.createElement('button');
+              btn.type = 'button';
+              btn.className = 'step-btn' + (step.id === currentStepId ? ' active' : '');
+              btn.setAttribute('data-step-id', step.id);
+              btn.innerHTML = (step.icon ? '<span class="icon">' + escapeHtml(step.icon) + '</span>' : '') + escapeHtml(step.label);
+              btn.onclick = function () {
+                currentStepId = step.id;
+                document.querySelectorAll('.step-btn').forEach(function (b) { b.classList.remove('active'); });
+                btn.classList.add('active');
+                schemaStepLabel.textContent = step.id;
+                loadSchema(step.id);
+              };
+              li.appendChild(btn);
+              stepsContainer.appendChild(li);
+            });
+            loadSchema(currentStepId);
+          })
+          .catch(function (err) {
+            stepsDesc.textContent = '';
+            stepsDesc.className = 'error';
+            stepsDesc.textContent = 'Failed to load steps: ' + err.message;
+          });
+      }
+
+      function loadSchema(stepId) {
+        var country = getCountry();
+        schemaDesc.textContent = 'Loading schema…';
+        schemaDesc.className = '';
+        widgetsContainer.innerHTML = '';
+        fetch(apiBase + '/api/schema/' + encodeURIComponent(stepId) + '?country=' + encodeURIComponent(country))
+          .then(function (r) { return r.json(); })
+          .then(function (json) {
+            var data = json.data || {};
+            var widgets = data.widgets || [];
+            if (widgets.length === 0) {
+              schemaDesc.textContent = 'No widgets for this step.';
+              return;
+            }
+            schemaDesc.textContent = 'Widget config for “‘ + stepId + '” in ' + country + ':';
+            widgets.forEach(function (w) {
+              var li = document.createElement('li');
+              var html = '<div class="widget-title">' + escapeHtml(w.title) + '</div>';
+              html += '<div class="widget-meta">type: ' + escapeHtml(w.type) + '</div>';
+              if (w.data_source) {
+                html += '<div class="widget-meta">data_source: <a href="' + escapeHtml(apiBase + w.data_source) + '" target="_blank" rel="noopener">' + escapeHtml(w.data_source) + '</a></div>';
+              }
+              if (w.channel) {
+                html += '<div class="widget-meta">channel: ' + escapeHtml(w.channel) + ' (real-time)</div>';
+              }
+              li.innerHTML = html;
+              widgetsContainer.appendChild(li);
+            });
+          })
+          .catch(function (err) {
+            schemaDesc.textContent = '';
+            schemaDesc.className = 'error';
+            schemaDesc.textContent = 'Failed to load schema: ' + err.message;
+          });
+      }
+
+      countrySelect.addEventListener('change', function () {
+        loadSteps();
+      });
+
+      loadSteps();
+    })();
+  </script>
+</body>
+</html>

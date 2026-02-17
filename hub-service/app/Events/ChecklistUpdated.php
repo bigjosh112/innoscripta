@@ -35,10 +35,15 @@ class ChecklistUpdated implements ShouldBroadcastNow
 
     public function broadcastWith(): array
     {
+        $complete = empty($this->missingFields);
+        $message = $complete
+            ? "Checklist updated for {$this->country}. All data complete."
+            : "Checklist data invalidated for {$this->country}. Some items need attention.";
+
         return [
             'country' => $this->country,
             'event_type' => $this->eventType,
-            'message' => "Checklist data invalidated for {$this->country}. Refresh or refetch checklist.",
+            'message' => $message,
             'missing_fields' => $this->missingFields,
         ];
     }

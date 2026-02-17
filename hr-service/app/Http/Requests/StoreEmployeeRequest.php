@@ -23,10 +23,11 @@ class StoreEmployeeRequest extends FormRequest
             'last_name' => 'required|string|max:255',
             'country' => 'required|in:USA,Germany',
             'salary'  => 'nullable|numeric|min:0.01',
-            'ssn'     => 'nullable|string|max:255',
+            'ssn'     => 'nullable|string|max:255|unique:employees,ssn',
             'address' => 'nullable|string|max:255',
             'goal'    => 'nullable|string|max:255',
-            'tax_id'  => 'nullable|string|max:255',
+            'tax_id' => 'nullable|string|max:255|unique:employees,tax_id',
+
         ];
 
         // if ($country === 'USA') {

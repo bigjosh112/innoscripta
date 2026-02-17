@@ -35,12 +35,13 @@ class ChecklistApiTest extends TestCase
         $response = $this->getJson('/api/checklists?country=USA');
         $response->assertStatus(200);
         $response->assertJsonStructure([
-            'overall' => ['total', 'complete', 'percentage'],
+            'overall' => ['total', 'complete', 'percentage', 'average_salary'],
             'employees' => [
                 ['id', 'name', 'checklist', 'completion_percentage', 'complete'],
             ],
         ]);
         $this->assertSame(1, $response->json('overall.total'));
         $this->assertSame(1, $response->json('overall.complete'));
+        $this->assertSame(75000, $response->json('overall.average_salary'));
     }
 }

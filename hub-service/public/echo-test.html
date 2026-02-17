@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #f8fafc;
+      --bg: #f1f5f9;
       --surface: #ffffff;
       --surface-hover: #f8fafc;
       --border: #e2e8f0;
@@ -28,10 +28,11 @@
       --usa-bg: #dbeafe;
       --de: #b45309;
       --de-bg: #fef3c7;
-      --radius: 12px;
-      --radius-sm: 8px;
-      --shadow: 0 1px 3px rgba(0,0,0,.04);
-      --shadow-card: 0 4px 6px -1px rgba(0,0,0,.05), 0 2px 4px -2px rgba(0,0,0,.05);
+      --radius: 14px;
+      --radius-sm: 10px;
+      --shadow: 0 1px 3px rgba(0,0,0,.06);
+      --shadow-card: 0 4px 12px rgba(0,0,0,.06), 0 2px 4px rgba(0,0,0,.04);
+      --content-width: 720px;
     }
 
     * { box-sizing: border-box; }
@@ -43,12 +44,17 @@
       min-height: 100vh;
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .app {
-      max-width: 1100px;
+      width: 100%;
+      max-width: var(--content-width);
       margin: 0 auto;
       padding: 2rem 1.5rem;
+      flex: 1;
     }
 
     .header {
@@ -57,8 +63,8 @@
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 1rem;
-      margin-bottom: 2rem;
-      padding-bottom: 1.5rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.25rem;
       border-bottom: 1px solid var(--border);
     }
 
@@ -66,24 +72,15 @@
       font-size: 1.375rem;
       font-weight: 700;
       letter-spacing: -0.02em;
-      margin: 0 0 0.25rem 0;
+      margin: 0;
       color: var(--text);
     }
 
-    .header-left p {
-      font-size: 0.8125rem;
-      color: var(--text-secondary);
-      margin: 0;
-    }
-
-    .header-left code {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.75em;
-      background: var(--surface);
-      padding: 0.15em 0.4em;
-      border-radius: 4px;
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
     }
 
     .status-badge {
@@ -108,19 +105,144 @@
     .status-badge.disconnected { background: var(--error-bg); color: var(--error); }
     .status-badge.loading { background: var(--warn-bg); color: var(--warn); }
 
+    .country-switcher {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .country-switcher-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .country-tabs {
+      display: flex;
+      gap: 0.35rem;
+    }
+    .country-tab {
+      padding: 0.6rem 1.5rem;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      border: 2px solid var(--border);
+      background: var(--surface);
+      color: var(--text-secondary);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+      box-shadow: var(--shadow);
+    }
+    .country-tab:hover {
+      background: var(--bg);
+      color: var(--text);
+      border-color: var(--text-muted);
+    }
+    .country-tab.active {
+      border-color: var(--accent);
+      background: var(--accent-bg);
+      color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+    .country-tab.usa.active { border-color: var(--usa); background: var(--usa-bg); color: var(--usa); box-shadow: 0 0 0 1px var(--usa); }
+    .country-tab.germany.active { border-color: var(--de); background: var(--de-bg); color: var(--de); box-shadow: 0 0 0 1px var(--de); }
+
+    .step-nav {
+      display: flex;
+      gap: 0.25rem;
+      margin-bottom: 1.5rem;
+      padding: 0.25rem;
+      background: var(--surface);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+    .step-nav-btn {
+      flex: 1;
+      padding: 0.65rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s, color 0.2s;
+    }
+    .step-nav-btn:hover {
+      background: var(--bg);
+      color: var(--text);
+    }
+    .step-nav-btn.active {
+      background: var(--accent-bg);
+      color: var(--accent);
+    }
+    .main-content { margin-bottom: 1.5rem; }
+    .view-panel { display: none; }
+    .view-panel.active { display: block; }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1rem;
+    }
+    .dashboard-stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1.25rem;
+      box-shadow: var(--shadow);
+    }
+    .dashboard-stat .stat-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 0.5rem;
+    }
+    .dashboard-stat .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .dashboard-stat .stat-value .pct { color: var(--accent); }
+    .dashboard-list-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text);
+      margin: 1rem 0 0.5rem 0;
+    }
+    .dashboard-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      overflow: hidden;
+    }
+    .dashboard-list li {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8125rem;
+    }
+    .dashboard-list li:last-child { border-bottom: none; }
+    .doc-placeholder {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9375rem;
+    }
+
     @keyframes pulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.5; }
-    }
-
-    .panels {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
-    }
-
-    @media (max-width: 768px) {
-      .panels { grid-template-columns: 1fr; }
     }
 
     .panel {
@@ -133,18 +255,8 @@
       flex-direction: column;
     }
 
-    .panel-title {
-      padding: 1rem 1.25rem;
-      font-weight: 600;
-      font-size: 0.9375rem;
-      letter-spacing: -0.01em;
-    }
-
-    .panel.usa .panel-title { background: var(--usa-bg); color: var(--usa); }
-    .panel.germany .panel-title { background: var(--de-bg); color: var(--de); }
-
     .panel-body {
-      padding: 1rem 1.25rem;
+      padding: 1.25rem;
       display: flex;
       flex-direction: column;
       gap: 0;
@@ -153,11 +265,11 @@
     }
 
     .stat-card {
-      padding: 1rem 1.25rem;
+      padding: 1.25rem 1.25rem;
       background: var(--bg);
       border-radius: var(--radius-sm);
       border: 1px solid var(--border);
-      margin-bottom: 1rem;
+      margin-bottom: 1.25rem;
     }
 
     .stat-card .stat-label {
@@ -394,6 +506,24 @@
 
     .event-card:last-child { margin-bottom: 0; }
 
+    .event-card.success {
+      border-color: var(--success);
+      background: var(--success-bg);
+    }
+    .event-card.success .event-card-type {
+      background: var(--success);
+      color: #fff;
+    }
+    .event-card-success {
+      margin-bottom: 0.5rem;
+      padding: 0.5rem 0.65rem;
+      background: rgba(21, 128, 61, 0.12);
+      border-radius: 4px;
+      font-size: 0.8125rem;
+      color: var(--success);
+      font-weight: 500;
+    }
+
     .event-card-head {
       display: flex;
       align-items: center;
@@ -443,12 +573,21 @@
       overflow-y: auto;
     }
 
+    .intro-text {
+      text-align: center;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      margin: 0 0 1.5rem 0;
+      line-height: 1.5;
+    }
+
     .footer {
       margin-top: 2rem;
       padding-top: 1.25rem;
       border-top: 1px solid var(--border);
       font-size: 0.75rem;
       color: var(--text-muted);
+      text-align: center;
     }
   </style>
 </head>
@@ -456,109 +595,90 @@
   <div class="app">
     <header class="header">
       <div class="header-left">
-        <h1>WebSocket Monitor</h1>
-        <p>Channels: <code>checklist.USA</code> · <code>checklist.Germany</code> · <code>employees.USA</code> · <code>employees.Germany</code></p>
+        <h1>Hub</h1>
       </div>
-      <div id="status" class="status-badge loading"><span class="dot"></span>Loading…</div>
+      <div class="header-right">
+        <div class="country-switcher">
+          <span class="country-switcher-label">Country</span>
+          <div class="country-tabs" id="country-tabs" role="tablist">
+            <button type="button" class="country-tab usa active" data-country="USA" role="tab" aria-selected="true">USA</button>
+            <button type="button" class="country-tab germany" data-country="Germany" role="tab" aria-selected="false">Germany</button>
+          </div>
+        </div>
+        <div id="status" class="status-badge loading"><span class="dot"></span>Loading…</div>
+      </div>
     </header>
 
-    <div class="panels">
-      <section class="panel usa" aria-label="USA">
-        <div class="panel-title">USA</div>
-        <div class="panel-body">
-          <div id="checklist-usa" class="stat-card loading">
-            <div class="stat-label">Checklist completion</div>
-            <div class="stat-value">—</div>
-            <div class="stat-meta"></div>
-          </div>
-          <div id="employees-usa" class="employees-section">
-            <div class="section-head">
-              <span class="section-title">Employees by validation</span>
-              <div style="display:flex;align-items:center;gap:0.5rem;">
-                <div class="tab-row">
-                  <button type="button" class="tab-btn active" data-country="USA" data-tab="validated">Validated</button>
-                  <button type="button" class="tab-btn" data-country="USA" data-tab="invalidated">Invalidated</button>
-                </div>
-                <button type="button" class="btn-refresh" data-country="USA">Refresh</button>
-              </div>
-            </div>
-            <div class="employee-list-wrap">
-              <ul id="list-usa" class="employee-list-paginated"></ul>
-              <div id="empty-usa" class="empty-list" style="display:none;">No data. Click Refresh.</div>
-            </div>
-            <div id="pagination-usa" class="pagination-row" style="display:none;">
-              <span><select data-country="USA"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option></select> per page</span>
-              <span class="pagination-btns">
-                <button type="button" data-country="USA" data-action="prev">Prev</button>
-                <span class="page-info"></span>
-                <button type="button" data-country="USA" data-action="next">Next</button>
-              </span>
-            </div>
-          </div>
-          <div class="events-section">
-            <div class="section-label">Recent events</div>
-            <div id="events-usa" class="events-list"></div>
-          </div>
-        </div>
-      </section>
-      <section class="panel germany" aria-label="Germany">
-        <div class="panel-title">Germany</div>
-        <div class="panel-body">
-          <div id="checklist-germany" class="stat-card loading">
-            <div class="stat-label">Checklist completion</div>
-            <div class="stat-value">—</div>
-            <div class="stat-meta"></div>
-          </div>
-          <div id="employees-germany" class="employees-section">
-            <div class="section-head">
-              <span class="section-title">Employees by validation</span>
-              <div style="display:flex;align-items:center;gap:0.5rem;">
-                <div class="tab-row">
-                  <button type="button" class="tab-btn active" data-country="Germany" data-tab="validated">Validated</button>
-                  <button type="button" class="tab-btn" data-country="Germany" data-tab="invalidated">Invalidated</button>
-                </div>
-                <button type="button" class="btn-refresh" data-country="Germany">Refresh</button>
-              </div>
-            </div>
-            <div class="employee-list-wrap">
-              <ul id="list-germany" class="employee-list-paginated"></ul>
-              <div id="empty-germany" class="empty-list" style="display:none;">No data. Click Refresh.</div>
-            </div>
-            <div id="pagination-germany" class="pagination-row" style="display:none;">
-              <span><select data-country="Germany"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option></select> per page</span>
-              <span class="pagination-btns">
-                <button type="button" data-country="Germany" data-action="prev">Prev</button>
-                <span class="page-info"></span>
-                <button type="button" data-country="Germany" data-action="next">Next</button>
-              </span>
-            </div>
-          </div>
-          <div class="events-section">
-            <div class="section-label">Recent events</div>
-            <div id="events-germany" class="events-list"></div>
-          </div>
-        </div>
-      </section>
-    </div>
+    <nav class="step-nav" id="step-nav" aria-label="Main navigation"></nav>
 
-    <footer class="footer">Hub WebSocket monitor · Pusher-backed real-time updates</footer>
+    <main class="main-content">
+      <div id="view-dashboard" class="view-panel active">
+        <div id="dashboard-stats" class="dashboard-grid"></div>
+        <div id="dashboard-list-wrap" style="display:none;">
+          <div class="dashboard-list-title" id="dashboard-list-title"></div>
+          <ul id="dashboard-list" class="dashboard-list"></ul>
+        </div>
+      </div>
+      <div id="view-employees" class="view-panel">
+        <section id="panel-employees" class="panel">
+          <div class="panel-body">
+            <div id="checklist-current" class="stat-card loading">
+              <div class="stat-label">Checklist completion</div>
+              <div class="stat-value">—</div>
+              <div class="stat-meta"></div>
+            </div>
+            <div id="employees-current" class="employees-section">
+              <div class="section-head">
+                <span class="section-title">Employees by validation</span>
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                  <div class="tab-row">
+                    <button type="button" class="tab-btn active" data-tab="validated">Validated</button>
+                    <button type="button" class="tab-btn" data-tab="invalidated">Invalidated</button>
+                  </div>
+                  <button type="button" class="btn-refresh" id="btn-refresh-current">Refresh</button>
+                </div>
+              </div>
+              <div class="employee-list-wrap">
+                <ul id="list-current" class="employee-list-paginated"></ul>
+                <div id="empty-current" class="empty-list" style="display:none;">No data. Click Refresh.</div>
+              </div>
+              <div id="pagination-current" class="pagination-row" style="display:none;">
+                <span><select id="per-page-current"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option></select> per page</span>
+                <span class="pagination-btns">
+                  <button type="button" data-action="prev">Prev</button>
+                  <span class="page-info"></span>
+                  <button type="button" data-action="next">Next</button>
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+      <div id="view-documentation" class="view-panel">
+        <div class="doc-placeholder">Documentation (Germany). Content is config-driven per country.</div>
+      </div>
+      <div class="events-section" style="margin-top:1.5rem;">
+        <div class="section-label">Recent events</div>
+        <div id="events-current" class="events-list"></div>
+      </div>
+    </main>
+
+    <footer class="footer">Hub · Server-driven UI · Pusher real-time</footer>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/pusher-js@8.4.0/dist/web/pusher.min.js"></script>
   <script>
     (function () {
       var statusEl = document.getElementById('status');
-      var eventsByCountry = { USA: document.getElementById('events-usa'), Germany: document.getElementById('events-germany') };
-      var checklistByCountry = { USA: document.getElementById('checklist-usa'), Germany: document.getElementById('checklist-germany') };
-      var listByCountry = { USA: document.getElementById('list-usa'), Germany: document.getElementById('list-germany') };
-      var emptyByCountry = { USA: document.getElementById('empty-usa'), Germany: document.getElementById('empty-germany') };
-      var paginationByCountry = { USA: document.getElementById('pagination-usa'), Germany: document.getElementById('pagination-germany') };
       var apiBase = window.location.origin;
-
+      var currentCountry = 'USA';
+      var currentStepId = 'dashboard';
+      var stepsList = [];
       var employeeData = {
         USA: { validated: [], invalidated: [], tab: 'validated', page: 1, pageSize: 10 },
         Germany: { validated: [], invalidated: [], tab: 'validated', page: 1, pageSize: 10 }
       };
+      var eventStore = { USA: [], Germany: [] };
 
       function countryFromChannel(channelName) {
         if (channelName.endsWith('.USA')) return 'USA';
@@ -579,14 +699,14 @@
         data.validated = validated;
         data.invalidated = invalidated;
         data.page = 1;
-        renderEmployeeList(country);
+        if (country === currentCountry && currentStepId === 'employees') renderEmployeeList();
       }
 
-      function renderEmployeeList(country) {
-        var data = employeeData[country];
-        var listEl = listByCountry[country];
-        var emptyEl = emptyByCountry[country];
-        var paginationEl = paginationByCountry[country];
+      function renderEmployeeList() {
+        var data = employeeData[currentCountry];
+        var listEl = document.getElementById('list-current');
+        var emptyEl = document.getElementById('empty-current');
+        var paginationEl = document.getElementById('pagination-current');
         if (!data || !listEl) return;
 
         var list = data.tab === 'validated' ? data.validated : data.invalidated;
@@ -621,27 +741,141 @@
           pageInfo.textContent = 'Page ' + page + ' of ' + totalPages;
           paginationEl.querySelector('button[data-action="prev"]').disabled = page <= 1;
           paginationEl.querySelector('button[data-action="next"]').disabled = page >= totalPages;
-          var sel = paginationEl.querySelector('select');
+          var sel = document.getElementById('per-page-current');
           if (sel) sel.value = String(pageSize);
         }
       }
 
+      function statValueFromChecklist(widgetId, overall) {
+        if (widgetId === 'employee_count') return String(overall.total || 0);
+        if (widgetId === 'average_salary') return overall.average_salary != null ? '$' + Number(overall.average_salary).toLocaleString() : '—';
+        if (widgetId === 'completion_rate') return (overall.percentage != null ? overall.percentage : 0) + '%';
+        return '—';
+      }
+
+      function loadDashboardView() {
+        var country = currentCountry;
+        var gridEl = document.getElementById('dashboard-stats');
+        var listWrap = document.getElementById('dashboard-list-wrap');
+        var listTitleEl = document.getElementById('dashboard-list-title');
+        var listEl = document.getElementById('dashboard-list');
+        gridEl.innerHTML = '<div class="dashboard-stat"><div class="stat-label">Loading…</div><div class="stat-value">—</div></div>';
+        listWrap.style.display = 'none';
+        fetch(apiBase + '/api/schema/dashboard?country=' + encodeURIComponent(country))
+          .then(function (r) { return r.json(); })
+          .then(function (schemaRes) {
+            var widgets = (schemaRes.data && schemaRes.data.widgets) || [];
+            var checklistUrl = apiBase + '/api/checklists?country=' + encodeURIComponent(country);
+            var employeesUrl = apiBase + '/api/employees?country=' + encodeURIComponent(country);
+            var needChecklist = widgets.some(function (w) { return w.data_source && w.data_source.indexOf('checklists') !== -1; });
+            var needEmployees = widgets.some(function (w) { return w.data_source && w.data_source.indexOf('employees') !== -1; });
+            var checklistData = null;
+            var employeesData = null;
+            var done = 0;
+            var total = (needChecklist ? 1 : 0) + (needEmployees ? 1 : 0) || 1;
+            function maybeRender() {
+              done++;
+              if (done < total) return;
+              var overall = (checklistData && checklistData.overall) || {};
+              gridEl.innerHTML = '';
+              widgets.forEach(function (w) {
+                if (w.type === 'stat') {
+                  var value = statValueFromChecklist(w.id, overall);
+                  var card = document.createElement('div');
+                  card.className = 'dashboard-stat';
+                  card.innerHTML = '<div class="stat-label">' + escapeHtml(w.title) + '</div><div class="stat-value">' + (w.id === 'completion_rate' ? (overall.percentage != null ? overall.percentage : 0) + '<span class="pct">%</span>' : escapeHtml(statValueFromChecklist(w.id, overall))) + '</div>';
+                  gridEl.appendChild(card);
+                }
+                if (w.type === 'list' && w.title && employeesData) {
+                  listTitleEl.textContent = w.title;
+                  listEl.innerHTML = '';
+                  var rows = (employeesData.data || []);
+                  rows.forEach(function (row) {
+                    var li = document.createElement('li');
+                    var name = (row.name || '') + ' ' + (row.last_name || '');
+                    var goal = row.goal != null ? String(row.goal) : '—';
+                    li.textContent = (name.trim() || 'Employee' + (row.id ? ' #' + row.id : '')) + ' · Goal: ' + goal;
+                    listEl.appendChild(li);
+                  });
+                  listWrap.style.display = 'block';
+                }
+              });
+            }
+            if (needChecklist) {
+              fetch(checklistUrl).then(function (r) { return r.json(); }).then(function (json) { checklistData = json; maybeRender(); }).catch(maybeRender);
+            } else { done++; maybeRender(); }
+            if (needEmployees) {
+              fetch(employeesUrl).then(function (r) { return r.json(); }).then(function (json) { employeesData = json; maybeRender(); }).catch(maybeRender);
+            } else { done++; maybeRender(); }
+          })
+          .catch(function () {
+            gridEl.innerHTML = '<div class="dashboard-stat"><div class="stat-label">Dashboard</div><div class="stat-value">Failed to load</div></div>';
+          });
+      }
+
+      function loadStepView(stepId) {
+        currentStepId = stepId;
+        document.querySelectorAll('.view-panel').forEach(function (p) { p.classList.remove('active'); });
+        document.querySelectorAll('.step-nav-btn').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-step') === stepId); });
+        var view = document.getElementById('view-' + stepId);
+        if (view) view.classList.add('active');
+        if (stepId === 'dashboard') loadDashboardView();
+        if (stepId === 'employees') {
+          fetchChecklist(currentCountry);
+          var data = employeeData[currentCountry];
+          document.querySelectorAll('#employees-current .tab-btn').forEach(function (btn) {
+            btn.classList.toggle('active', btn.getAttribute('data-tab') === data.tab);
+          });
+          renderEmployeeList();
+        }
+      }
+
+      function loadStepsForCountry(country) {
+        var navEl = document.getElementById('step-nav');
+        if (!navEl) return;
+        navEl.innerHTML = '';
+        fetch(apiBase + '/api/steps?country=' + encodeURIComponent(country))
+          .then(function (r) { return r.json(); })
+          .then(function (json) {
+            var steps = json.steps || json.data || [];
+            stepsList = steps;
+            steps.forEach(function (step) {
+              var btn = document.createElement('button');
+              btn.type = 'button';
+              btn.className = 'step-nav-btn' + (step.id === currentStepId ? ' active' : '');
+              btn.textContent = step.label;
+              btn.setAttribute('data-step', step.id);
+              btn.onclick = function () { loadStepView(step.id); };
+              navEl.appendChild(btn);
+            });
+            if (steps.length && steps.every(function (s) { return s.id !== currentStepId; })) {
+              currentStepId = steps[0].id;
+              loadStepView(currentStepId);
+            }
+          })
+          .catch(function () {
+            navEl.innerHTML = '<button type="button" class="step-nav-btn active" data-step="dashboard">Dashboard</button>';
+            loadStepView('dashboard');
+          });
+      }
+
       function fetchChecklist(country) {
-        var el = checklistByCountry[country];
+        var el = document.getElementById('checklist-current');
         if (!el) return;
-        el.classList.add('loading');
+        if (currentCountry === country && currentStepId === 'employees') el.classList.add('loading');
         fetch(apiBase + '/api/checklists?country=' + encodeURIComponent(country))
           .then(function (r) { return r.json(); })
           .then(function (json) {
-            el.classList.remove('loading');
-            var overall = json.overall || {};
-            var total = overall.total || 0;
-            var pct = overall.percentage || 0;
-            el.querySelector('.stat-value').innerHTML =
-              total + ' employee' + (total === 1 ? '' : 's') + ', <span class="pct">' + pct + '%</span> complete';
-            el.querySelector('.stat-meta').textContent =
-              'Updated ' + new Date().toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
+            if (currentCountry === country && currentStepId === 'employees') {
+              el.classList.remove('loading');
+              var overall = json.overall || {};
+              var total = overall.total || 0;
+              var pct = overall.percentage || 0;
+              el.querySelector('.stat-value').innerHTML =
+                total + ' employee' + (total === 1 ? '' : 's') + ', <span class="pct">' + pct + '%</span> complete';
+              el.querySelector('.stat-meta').textContent =
+                'Updated ' + new Date().toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }
             var employees = json.employees || [];
             var validated = [];
             var invalidated = [];
@@ -663,80 +897,120 @@
             setEmployeeData(country, validated, invalidated);
           })
           .catch(function () {
-            el.classList.remove('loading');
-            el.querySelector('.stat-value').textContent = 'Failed to load';
-            el.querySelector('.stat-meta').textContent = '';
+            if (currentCountry === country && currentStepId === 'employees') {
+              el.classList.remove('loading');
+              el.querySelector('.stat-value').textContent = 'Failed to load';
+              el.querySelector('.stat-meta').textContent = '';
+            }
             setEmployeeData(country, [], []);
           });
       }
 
-      document.addEventListener('click', function (e) {
+      function renderEvents() {
+        var container = document.getElementById('events-current');
+        if (!container) return;
+        var events = eventStore[currentCountry] || [];
+        container.innerHTML = '';
+        events.forEach(function (ev) {
+          var div = document.createElement('div');
+          var isComplete = ev.eventName === 'ChecklistUpdated' && (!ev.data.missing_fields || ev.data.missing_fields.length === 0);
+          div.className = 'event-card' + (isComplete ? ' success' : '');
+          var missingHtml = '';
+          if (ev.eventName === 'ChecklistUpdated' && ev.data.missing_fields && ev.data.missing_fields.length) {
+            var list = ev.data.missing_fields.map(function (m) { return escapeHtml(m); }).join(' · ');
+            missingHtml = '<div class="event-card-missing"><strong>Missing or incomplete:</strong> ' + list + '</div>';
+          } else if (isComplete && ev.data.message) {
+            missingHtml = '<div class="event-card-success">' + escapeHtml(ev.data.message) + '</div>';
+          }
+          div.innerHTML =
+            '<div class="event-card-head">' +
+              '<span class="event-card-type">' + escapeHtml(ev.eventName) + '</span>' +
+              '<span class="event-card-time">' + ev.time + '</span>' +
+            '</div>' + missingHtml +
+            '<pre class="event-card-json">' + escapeHtml(ev.rawJson) + '</pre>';
+          container.appendChild(div);
+        });
+      }
+
+      function switchCountry(country) {
+        if (country === currentCountry) return;
+        currentCountry = country;
+        var slug = country === 'USA' ? 'usa' : 'germany';
+
+        document.querySelectorAll('.country-tab').forEach(function (tab) {
+          var isActive = tab.getAttribute('data-country') === country;
+          tab.classList.toggle('active', isActive);
+          tab.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+
+        var panelEl = document.getElementById('panel-employees');
+        if (panelEl) panelEl.className = 'panel ' + slug;
+
+        var data = employeeData[country];
+        document.querySelectorAll('#employees-current .tab-btn').forEach(function (btn) {
+          btn.classList.toggle('active', btn.getAttribute('data-tab') === data.tab);
+        });
+        var perPageSel = document.getElementById('per-page-current');
+        if (perPageSel) perPageSel.value = String(data.pageSize);
+
+        loadStepsForCountry(country);
+        loadStepView(currentStepId);
+        renderEvents();
+      }
+
+      document.getElementById('country-tabs').addEventListener('click', function (e) {
         var country = e.target.getAttribute('data-country');
-        if (!country) return;
+        if (country) switchCountry(country);
+      });
+
+      document.addEventListener('click', function (e) {
         if (e.target.classList.contains('tab-btn')) {
           var tab = e.target.getAttribute('data-tab');
           if (!tab) return;
-          employeeData[country].tab = tab;
-          employeeData[country].page = 1;
-          var section = document.getElementById('employees-' + (country === 'USA' ? 'usa' : 'germany'));
-          if (section) {
-            section.querySelectorAll('.tab-btn').forEach(function (btn) {
-              btn.classList.toggle('active', btn.getAttribute('data-tab') === tab);
-            });
-          }
-          renderEmployeeList(country);
-        } else if (e.target.classList.contains('btn-refresh')) {
-          fetchChecklist(country);
+          employeeData[currentCountry].tab = tab;
+          employeeData[currentCountry].page = 1;
+          document.querySelectorAll('#employees-current .tab-btn').forEach(function (btn) {
+            btn.classList.toggle('active', btn.getAttribute('data-tab') === tab);
+          });
+          renderEmployeeList();
+        } else if (e.target.classList.contains('btn-refresh') || e.target.id === 'btn-refresh-current') {
+          fetchChecklist(currentCountry);
         } else if (e.target.getAttribute('data-action') === 'prev') {
-          var d = employeeData[country];
-          if (d && d.page > 1) { d.page--; renderEmployeeList(country); }
+          var d = employeeData[currentCountry];
+          if (d && d.page > 1) { d.page--; renderEmployeeList(); }
         } else if (e.target.getAttribute('data-action') === 'next') {
-          var d = employeeData[country];
+          var d = employeeData[currentCountry];
           var list = d.tab === 'validated' ? d.validated : d.invalidated;
           var maxPage = Math.ceil(list.length / d.pageSize) || 1;
-          if (d && d.page < maxPage) { d.page++; renderEmployeeList(country); }
+          if (d && d.page < maxPage) { d.page++; renderEmployeeList(); }
         }
       });
 
       document.addEventListener('change', function (e) {
-        if (e.target.tagName !== 'SELECT' || !e.target.getAttribute('data-country')) return;
-        var country = e.target.getAttribute('data-country');
-        var pageSize = parseInt(e.target.value, 10) || 10;
-        employeeData[country].pageSize = pageSize;
-        employeeData[country].page = 1;
-        renderEmployeeList(country);
+        if (e.target.id === 'per-page-current') {
+          var pageSize = parseInt(e.target.value, 10) || 10;
+          employeeData[currentCountry].pageSize = pageSize;
+          employeeData[currentCountry].page = 1;
+          renderEmployeeList();
+        }
       });
 
       function addEvent(channelName, eventName, data) {
         var country = countryFromChannel(channelName);
-        var container = country ? eventsByCountry[country] : null;
-        if (!container) return;
+        if (!country) return;
 
-        if (country && (eventName === 'ChecklistUpdated' || eventName === 'EmployeeDataUpdated')) {
+        if (eventName === 'ChecklistUpdated' || eventName === 'EmployeeDataUpdated') {
           fetchChecklist(country);
+          if (country === currentCountry && currentStepId === 'dashboard') loadDashboardView();
         }
 
-        var div = document.createElement('div');
-        div.className = 'event-card';
         var time = new Date().toLocaleTimeString('en-GB', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
         var rawJson = JSON.stringify(data, null, 2);
+        eventStore[country].unshift({ eventName: eventName, data: data, time: time, rawJson: rawJson });
+        if (eventStore[country].length > 50) eventStore[country].pop();
+        if (country === currentCountry) renderEvents();
 
-        var missingHtml = '';
-        if (eventName === 'ChecklistUpdated' && data.missing_fields && data.missing_fields.length) {
-          var list = data.missing_fields.map(function (m) { return escapeHtml(m); }).join(' · ');
-          missingHtml = '<div class="event-card-missing"><strong>Missing or incomplete:</strong> ' + list + '</div>';
-        }
-
-        div.innerHTML =
-          '<div class="event-card-head">' +
-            '<span class="event-card-type">' + escapeHtml(eventName) + '</span>' +
-            '<span class="event-card-time">' + time + '</span>' +
-          '</div>' +
-          missingHtml +
-          '<pre class="event-card-json">' + escapeHtml(rawJson) + '</pre>';
-        container.insertBefore(div, container.firstChild);
-
-        console.log('WebSocket event [' + (country || channelName) + ']:', eventName, data);
+        console.log('WebSocket event [' + country + ']:', eventName, data);
       }
 
       function setStatus(connected) {
@@ -753,8 +1027,9 @@
       fetch(configUrl)
         .then(function (r) { return r.json(); })
         .then(function (config) {
-          fetchChecklist('USA');
-          fetchChecklist('Germany');
+          loadStepsForCountry('USA');
+          loadStepView('dashboard');
+          renderEvents();
           if (!config.key) {
             statusEl.className = 'status-badge disconnected';
             statusEl.innerHTML =
