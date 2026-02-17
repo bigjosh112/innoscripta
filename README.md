@@ -151,8 +151,6 @@ docker compose up -d
 | Hub Service | http://localhost:9001 |
 | RabbitMQ Management | http://localhost:15673 |
 | WebSocket test page | http://localhost:9001/echo-test.html |
-| Postman collection | [Import in Postman](YOUR_POSTMAN_LINK) |
-
-Replace `YOUR_POSTMAN_LINK` with your actual Postman collection or environment link (e.g. from *Share* → *Get Link* in Postman).
+| Postman collection | [Import in Postman](https://www.postman.com/galactic-meteor-862086/workspace/innoscripts/collection/25427708-14c37558-7c53-4c6f-87ee-66b20eb76481?action=share&source=copy-link&creator=25427708) |
 
 See **hub-service/README.md** and **hr-service/README.md** for API details, env vars, and run options.
