@@ -26,7 +26,7 @@ class StoreEmployeeRequest extends FormRequest
             'ssn'     => 'nullable|string|max:255|unique:employees,ssn',
             'address' => 'nullable|string|max:255',
             'goal'    => 'nullable|string|max:255',
-            'tax_id' => 'nullable|string|max:255|unique:employees,tax_id',
+            'tax_id' => 'nullable|string|regex:/^DE\d{9}$/|unique:employees,tax_id',
 
         ];
 
